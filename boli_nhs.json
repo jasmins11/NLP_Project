@@ -1,52 +1,7 @@
 [
   {
-    "boala": "Abdominal aortic aneurysm (AAA) screening",
-    "descriere": "Abdominal aortic aneurysm (AAA) screening is a test to check if there's a swelling in your aorta, which is the main blood vessel that carries blood from the heart to the tummy (abdomen).",
-    "simptome": "N/A"
-  },
-  {
-    "boala": "Abdominal aortic aneurysm",
-    "descriere": "N/A",
-    "simptome": "Abdominal aortic aneurysm often has no symptoms.\nYou usually only find out you have one during anabdominal aortic aneurysm screening testor during tests for another condition.\nIf an aneurysm gets bigger, you might sometimes notice:\n• tummy or back pain\n• a pulsing feeling in your tummy"
-  },
-  {
-    "boala": "Abortion",
-    "descriere": "Find out what an abortion is, how to prepare for it and what it involves.",
-    "simptome": "N/A"
-  },
-  {
-    "boala": "Acanthosis nigricans",
-    "descriere": "Acanthosis nigricans is the name for dry, dark patches of skin that usually appear in the armpits, neck or groin. It could be a sign of an underlying condition, so it needs to be checked by a GP.",
-    "simptome": "N/A"
-  },
-  {
-    "boala": "Achalasia",
-    "descriere": "N/A",
-    "simptome": "Not everyone with achalasia will have symptoms.\nBut most people with achalasia will find it difficult to swallow food or drink (known asdysphagia). Swallowing tends to get gradually more difficult or painful over a couple of years, to the point where it is sometimes impossible.\nOther symptoms include:\n• bringing back up undigested food\n• choking and coughing fits\n• heartburn\n• chest pain\n• repeatedchest infections\n• drooling of vomit or saliva\n• gradual but significantweight loss\nSymptoms of achalasia may start at any time of life.\nSwallowing problems can also be caused by cancers of the mouth, throat and oesophagus. There’s a link between long-term achalasia and the risk of developingcancer of the oesophagus, but the risk is small.\nIt’s always important to get symptoms checked straight away, even if your symptoms are not bothering you."
-  },
-  {
-    "boala": "Acid and chemical burns",
-    "descriere": "Get medical advice as soon as possible if you think you have an acid or chemical burn. You'll need to be treated as soon as possible.",
-    "simptome": "N/A"
-  },
-  {
-    "boala": "Reflux in babies",
-    "descriere": "N/A",
-    "simptome": "N/A"
-  },
-  {
-    "boala": "Overview\n    \n - \n      Acne",
-    "descriere": "N/A",
-    "simptome": "Acne most commonly develops on the:\n• face – this affects almost everyone with acne\n• back – this affects more than half of people with acne\n• chest – this affects about 15% of people with acne"
-  },
-  {
-    "boala": "Acoustic neuroma (vestibular schwannoma)",
-    "descriere": "N/A",
-    "simptome": "An acoustic neuroma may not cause any obvious symptoms at first.\nAny symptoms tend to develop gradually and often include:\n• hearing lossthat usually only affects 1 ear\n• hearing sounds that come from inside the body (tinnitus)\n• the sensation that you're moving or spinning (vertigo)\nA large acoustic neuroma can also sometimes cause:\n• persistentheadaches\n• temporary blurred ordouble vision\n• numbness, pain or weakness on 1 side of the face\n• problems with limb co-ordination (ataxia) on 1 side of the body\n• voice changes ordifficulty swallowing (dysphagia)"
-  },
-  {
-    "boala": "Acromegaly",
-    "descriere": "Acromegaly is a rare condition where the body makes too much of a hormone that can make parts of your body grow bigger. It can be successfully treated.",
-    "simptome": "Symptoms of acromegaly can develop slowly. They may include:\n• swollen hands and feet\n• tiredness or difficulty sleeping\n• sleep apnoea\n• sweating\n• numbness and weakness in your hands\n• abnormal height growth in children and teenagers (gigantism)\n• body growth – feet, fingers, head, tongue and neck may increase in size\n• headaches\n• joint pain\n• thicker, more oily skin\n• a deeper voice\n• irregular periods\n• erection problems\nYou usually get acromegaly between the ages of 30 and 50 years old, but you can get symptoms at any age."
+    "disease": "Dementia",
+    "description": "This guide has information for people with dementia and their families and friends.\nFind out what dementia is, including what causes it, if it can be prevented and how it's treated",
+    "symptoms": "N/A"
   }
 ]
