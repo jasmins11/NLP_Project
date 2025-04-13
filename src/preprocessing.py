@@ -1,11 +1,11 @@
 import json
 import pandas as pd
 from sklearn.model_selection import train_test_split
-from transformers import AutoTokenizer
+
 import re
+import os 
 
 def clean_disease_name(name):
-    # Elimină newline, "-", "Overview", spații multiple
     name = re.sub(r"Overview", "", name, flags=re.IGNORECASE)
     name = re.sub(r"[\n\-]", " ", name)
     name = re.sub(r"\s+", " ", name).strip()
@@ -21,7 +21,7 @@ def load_and_preprocess_dataset(path="./data/boli_nhs.json"):
         description = item.get("description", "").strip()
         symptoms_raw = item.get("symptoms", "").strip()
 
-        # Prelucrează simptomele (extrage doar liniile cu "-")
+        # From symptoms only take only the ones with '-
         bullet_symptoms = []
         if symptoms_raw and symptoms_raw != "N/A":
             lines = symptoms_raw.split("\n")
@@ -29,7 +29,7 @@ def load_and_preprocess_dataset(path="./data/boli_nhs.json"):
 
         cleaned_symptoms = " ".join(bullet_symptoms)
 
-        # Combină input-ul în funcție de ce avem
+        # Combine input (in case we dont have symptoms or description)
         if description and cleaned_symptoms:
             input_text = f"{description} Symptoms: {cleaned_symptoms}"
         elif description:
@@ -37,7 +37,7 @@ def load_and_preprocess_dataset(path="./data/boli_nhs.json"):
         elif cleaned_symptoms:
             input_text = f"Symptoms: {cleaned_symptoms}"
         else:
-            continue  # ignorăm dacă nu avem niciun text util
+            continue 
 
         updated_data.append({
             "disease": disease,
@@ -47,21 +47,10 @@ def load_and_preprocess_dataset(path="./data/boli_nhs.json"):
 
     return pd.DataFrame(updated_data)
 
-# Încărcăm datasetul
 dataset = load_and_preprocess_dataset(path="./data/boli_nhs.json")
 
-# Tokenizer
-tokenizer = AutoTokenizer.from_pretrained("distilbert/distilgpt2")
-tokenizer.pad_token = tokenizer.eos_token
+if not os.path.exists("outputs"):
+    os.makedirs("outputs")
 
-# Tokenizare text
-def preprocess_function(examples):
-    return tokenizer(examples, padding=True, truncation=True)
+dataset.to_csv("outputs/processed_dataset.csv", index=False)
 
-tokenized_dataset = dataset["input"].apply(preprocess_function)
-
-# Split train/test
-train_data, test_data = train_test_split(dataset, test_size=0.2, random_state=42)
-
-# Preview
-print(train_data.head())
