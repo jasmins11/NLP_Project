@@ -12,8 +12,8 @@ HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36"
 }
 
-START_INDEX = 4
-MAX_CONDITIONS = 10
+START_INDEX = 300
+MAX_CONDITIONS = 600
 
 def get_condition_links():
     response = requests.get(START_URL, headers=HEADERS)
@@ -33,57 +33,110 @@ def get_condition_links():
     return links[:MAX_CONDITIONS]
 
 def extract_description(soup):
-    desc_paragraphs = []
-    main_container = soup.find("div", class_="nhsuk-width-container")
+    # Încearcă să ia doar primele 2-3 paragrafe din containerul principal
+    main_container = soup.find("main")
+    if not main_container:
+        main_container = soup.find("div", class_="nhsuk-width-container")
+
     if main_container:
-        for p in main_container.find_all("p", recursive=True):
+        paragraphs = main_container.find_all("p", recursive=True)
+        desc_paragraphs = []
+        for p in paragraphs:
             text = p.get_text(strip=True)
             if text and len(text.split()) > 4:
                 desc_paragraphs.append(text)
             if len(desc_paragraphs) >= 2:
                 break
-    if desc_paragraphs:
-        return "\n".join(desc_paragraphs).strip()
+        if desc_paragraphs:
+            return "\n".join(desc_paragraphs).strip()
 
-    h1 = soup.find("h1")
-    if h1:
-        for sibling in h1.find_next_siblings():
-            if sibling.name == "p":
-                text = sibling.get_text(strip=True)
-                if len(text.split()) > 4:
-                    return text.strip()
     return "N/A"
 
-def extract_symptoms(soup):
-    content = []
-    possible_titles = [
-        "symptoms",
-        "signs and symptoms",
-        "symptoms of",
-        "what are the symptoms"
-    ]
 
-    headings = soup.find_all(["h2", "h3"])
-    for heading in headings:
-        heading_text = heading.get_text(strip=True).lower()
-        if any(phrase in heading_text for phrase in possible_titles):
-            for sibling in heading.find_next_siblings():
-                if sibling.name in ["h2", "h3"]:
-                    break
-                if sibling.name == "p":
-                    content.append(sibling.get_text(strip=True))
-                if sibling.name == "ul":
-                    for li in sibling.find_all("li"):
-                        content.append("• " + li.get_text(strip=True))
-            break
+def extract_symptoms(soup, url, visited_urls=None):
+    if visited_urls is None:
+        visited_urls = set()
 
-    return "\n".join(content).strip() or "N/A"
+    normalized_url = url.rstrip("/")
+    if normalized_url in visited_urls:
+        print(f"🔁 Already visited {normalized_url}, avoiding recursion.")
+        return "N/A"
+    visited_urls.add(normalized_url)
+
+    def extract_from_soup(soup_obj):
+        content = []
+        headings = soup_obj.find_all(["h2", "h3"])
+        for heading in headings:
+            heading_text = heading.get_text(strip=True).lower()
+            if "symptom" in heading_text or "sign" in heading_text:
+                for sibling in heading.find_next_siblings():
+                    if sibling.name in ["h2", "h3"]:
+                        break
+                    if sibling.name == "p":
+                        content.append(sibling.get_text(strip=True))
+                    elif sibling.name == "ul":
+                        for li in sibling.find_all("li"):
+                            content.append("- " + li.get_text(strip=True))
+                if content:
+                    return "\n".join(content).strip()
+
+        # fallback: <p> + <ul> după fraze cu "symptom"
+        for p in soup_obj.find_all("p"):
+            p_text = p.get_text(strip=True).lower()
+            if "symptom" in p_text:
+                next_tag = p.find_next_sibling()
+                if next_tag and next_tag.name == "ul":
+                    for li in next_tag.find_all("li"):
+                        content.append("- " + li.get_text(strip=True))
+                    return "\n".join(content).strip()
+
+        return None
+
+    # 🔍 1. Încearcă să extragi din pagina actuală
+    result = extract_from_soup(soup)
+    if result:
+        return result
+
+    # 🔍 2. Caută link-uri relevante ce conțin symptom și numele bolii
+    current_path = url.replace(BASE_URL + "/conditions/", "").strip("/").split("/")[0]
+    candidate_links = []
+    for a in soup.find_all("a", href=True):
+        href = a["href"].lower()
+        full_link = BASE_URL + href if href.startswith("/conditions/") else href
+        if "symptom" in href and "/conditions/" in href and current_path in href:
+            full_link = full_link.rstrip("/")
+            if full_link not in visited_urls and full_link not in candidate_links:
+                candidate_links.append(full_link)
+
+    # 🔁 Parcurge pe rând fiecare link relevant
+    for link in candidate_links:
+        try:
+            print(f"→ Trying related symptom page: {link}")
+            time.sleep(random.uniform(3.5, 10.5))
+            resp = requests.get(link, headers=HEADERS)
+            if resp.status_code == 200:
+                new_soup = BeautifulSoup(resp.text, "html.parser")
+                result = extract_symptoms(new_soup, link, visited_urls)
+                if result and result != "N/A":
+                    return result
+        except Exception as e:
+            print(f"→ Failed to access {link}: {e}")
+
+    return "N/A"
+
+
+
 
 def scrape_condition(url):
     print(f" Scraping: {url}")
     try:
         time.sleep(random.uniform(5.5, 10.5))
         response = requests.get(url, headers=HEADERS)
+
+        if response.status_code != 200:
+            print(f" Page not found: {url}")
+            return None
+        
         soup = BeautifulSoup(response.text, "html.parser")
         title = soup.find("h1").text.strip()
     except Exception as e:
@@ -93,8 +146,9 @@ def scrape_condition(url):
     return {
         "disease": title,
         "description": extract_description(soup),
-        "symptoms": extract_symptoms(soup)
+        "symptoms": extract_symptoms(soup, url, set())
     }
+
 
 
 def load_existing_data(path):
@@ -122,7 +176,19 @@ for idx, link in enumerate(links_to_scrape, start=START_INDEX + 1):
     except Exception as e:
         print(f" Erorr at {link}: {e}")
 
-print(f"\n Diseases length {len(all_data)}")
+# # Test pe o singură pagină
+# test_url = "https://www.nhs.uk/conditions/alcohol-poisoning/"
+# data = scrape_condition(test_url)
+# all_data = []
+
+# if data:
+#     all_data.append(data)
+#     print("✅ Scraping test complet!")
+
+print(f"\nDiseases length: {len(all_data)}")
+
+
+
 
 
 existing_data = load_existing_data("boli_nhs.json")
@@ -142,7 +208,7 @@ with open("boli_nhs.json", "w", encoding="utf-8") as f:
 
 
 with open("boli_nhs.csv", "w", encoding="utf-8", newline="") as f:
-    writer = csv.DictWriter(f, fieldnames=["diseases", "description", "symptoms"])
+    writer = csv.DictWriter(f, fieldnames=["disease", "description", "symptoms"])
     writer.writeheader()
     for entry in final_data:
         writer.writerow(entry)
