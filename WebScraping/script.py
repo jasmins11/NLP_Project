@@ -12,8 +12,8 @@ HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36"
 }
 
-START_INDEX = 300
-MAX_CONDITIONS = 600
+START_INDEX = 800
+MAX_CONDITIONS = 950
 
 def get_condition_links():
     response = requests.get(START_URL, headers=HEADERS)
@@ -33,7 +33,6 @@ def get_condition_links():
     return links[:MAX_CONDITIONS]
 
 def extract_description(soup):
-    # Încearcă să ia doar primele 2-3 paragrafe din containerul principal
     main_container = soup.find("main")
     if not main_container:
         main_container = soup.find("div", class_="nhsuk-width-container")
@@ -80,7 +79,6 @@ def extract_symptoms(soup, url, visited_urls=None):
                 if content:
                     return "\n".join(content).strip()
 
-        # fallback: <p> + <ul> după fraze cu "symptom"
         for p in soup_obj.find_all("p"):
             p_text = p.get_text(strip=True).lower()
             if "symptom" in p_text:
@@ -92,12 +90,10 @@ def extract_symptoms(soup, url, visited_urls=None):
 
         return None
 
-    # 🔍 1. Încearcă să extragi din pagina actuală
     result = extract_from_soup(soup)
     if result:
         return result
 
-    # 🔍 2. Caută link-uri relevante ce conțin symptom și numele bolii
     current_path = url.replace(BASE_URL + "/conditions/", "").strip("/").split("/")[0]
     candidate_links = []
     for a in soup.find_all("a", href=True):
@@ -108,10 +104,9 @@ def extract_symptoms(soup, url, visited_urls=None):
             if full_link not in visited_urls and full_link not in candidate_links:
                 candidate_links.append(full_link)
 
-    # 🔁 Parcurge pe rând fiecare link relevant
     for link in candidate_links:
         try:
-            print(f"→ Trying related symptom page: {link}")
+            print(f"Trying related symptom page: {link}")
             time.sleep(random.uniform(3.5, 10.5))
             resp = requests.get(link, headers=HEADERS)
             if resp.status_code == 200:
@@ -120,7 +115,7 @@ def extract_symptoms(soup, url, visited_urls=None):
                 if result and result != "N/A":
                     return result
         except Exception as e:
-            print(f"→ Failed to access {link}: {e}")
+            print(f"Failed to access {link}: {e}")
 
     return "N/A"
 
@@ -190,8 +185,7 @@ print(f"\nDiseases length: {len(all_data)}")
 
 
 
-
-existing_data = load_existing_data("boli_nhs.json")
+existing_data = load_existing_data("data/boli_nhs.json")
 combined_data = existing_data + all_data
 
 seen = set()
@@ -203,11 +197,11 @@ for item in combined_data:
         seen.add(name)
 
 
-with open("boli_nhs.json", "w", encoding="utf-8") as f:
+with open("data/boli_nhs.json", "w", encoding="utf-8") as f:
     json.dump(final_data, f, indent=2, ensure_ascii=False)
 
 
-with open("boli_nhs.csv", "w", encoding="utf-8", newline="") as f:
+with open("data/boli_nhs.csv", "w", encoding="utf-8", newline="") as f:
     writer = csv.DictWriter(f, fieldnames=["disease", "description", "symptoms"])
     writer.writeheader()
     for entry in final_data:
