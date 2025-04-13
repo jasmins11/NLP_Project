@@ -3,3 +3,8 @@
 
 requests
 beautifulsoup4
+pandas
+datasets
+scikit-learn
+transformers
+torch
