@@ -15,6 +15,7 @@ def load_and_preprocess_dataset(path="./data/boli_nhs.json"):
     with open(path, "r", encoding="utf-8") as f:
         raw_data = json.load(f)
 
+
     updated_data = []
     for item in raw_data:
         disease = clean_disease_name(item.get("disease", "N/A"))

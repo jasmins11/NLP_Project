@@ -71,6 +71,7 @@ val_loader = DataLoader(val_data, batch_size=BATCH_SIZE)
 criterion = nn.CrossEntropyLoss(ignore_index=tokenizer.pad_token_id)
 optimizer = optim.Adam(model.parameters(), lr=5e-4)
 
+
 # Training
 for epoch in range(EPOCHS):
     model.train()
